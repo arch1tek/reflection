@@ -5,7 +5,7 @@
     "background": {
       "service_worker": "background.js"
     },
-    
+    "trial_tokens": ["AnGITCOQYUgVjAROM0MLbyTZZVVMl8VnhJwEvb/ZxEQXUXIRCHXP31ja5cvuYcMe11gniWgbEL8R95dqjLOUYgcAAAB4eyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vYW1rbmxhaGljYWFtam9tcG5lZG1qaWRobG5ja2pwbG8iLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElGb3JFeHRlbnNpb24iLCJleHBpcnkiOjE3NjA0ODYzOTl9"],
     "permissions": [
       "aiLanguageModelOriginTrial",
       "storage",
