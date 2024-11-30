@@ -22,7 +22,33 @@ async function checkAndDownloadModel() {
       console.error('Error downloading or checking the model:', error);
     }
   }
-  
-  // Initialize the model download check when the extension starts
-checkAndDownloadModel();
-  
+
+// Check if the model is ready
+async function checkModelAvailability() {
+  const capabilities = await chrome.aiOriginTrial.languageModel.capabilities();
+  if (capabilities.available === 'readily') {
+    return true;
+  } else if (capabilities.available === 'after-download') {
+    await checkAndDownloadModel();
+    return true;
+  } else {
+    return false;
+  }
+}
+
+// Store summaries of the pages visited
+async function storeSummary(summary) {
+  chrome.storage.local.get({ summaryDatabase: [] }, (data) => {
+    const updatedDatabase = [...data.summaryDatabase, summary];
+    chrome.storage.local.set({ summaryDatabase: updatedDatabase });
+  });
+}
+
+chrome.runtime.onInstalled.addListener(async () => {
+  const modelReady = await checkModelAvailability();
+  if (modelReady) {
+    console.log("Model is ready to summarize pages.");
+  } else {
+    console.log("Model is not ready yet.");
+  }
+});
