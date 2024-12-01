@@ -1,54 +1,33 @@
-async function checkAndDownloadModel() {
-    console.log('downloader enter')
-    try {
-      const capabilities = await chrome.aiOriginTrial.languageModel.capabilities();
-  
-      if (capabilities.available === 'after-download') {
-        console.log('Model is downloading...');
-        const session = await chrome.aiOriginTrial.languageModel.create({
-          monitor(m) {
-            m.addEventListener("downloadprogress", (e) => {
-              console.log(`Downloaded ${e.loaded} of ${e.total} bytes.`);
-            });
-          },
-        });
-        console.log('Model downloaded and ready for use');
-      } else if (capabilities.available === 'readily') {
-        console.log('Model is already available');
-      } else {
-        console.log('Model is not available at the moment');
-      }
-    } catch (error) {
-      console.error('Error downloading or checking the model:', error);
-    }
-  }
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "storeSummary") {
+    (async () => {
+      console.log("Message received:", message);
+      try {
+        const { title, content } = message.data;
+        const { summary, category } = await ModelManager.getSummaryAndCategory(title, content);
 
-// Check if the model is ready
-async function checkModelAvailability() {
-  const capabilities = await chrome.aiOriginTrial.languageModel.capabilities();
-  if (capabilities.available === 'readily') {
-    return true;
-  } else if (capabilities.available === 'after-download') {
-    await checkAndDownloadModel();
-    return true;
+        await StorageManager.storeSummary({ title, summary, category });
+        sendResponse({ status: "success", summary, category });
+      } catch (error) {
+        console.error("Error processing storeSummary action:", error);
+        sendResponse({ status: "error", error: error.message });
+      }
+    })();
+    return true; // Keep the messaging channel open for async response
   } else {
+    sendResponse({ status: "unknown action" });
     return false;
   }
-}
+});
 
-// Store summaries of the pages visited
-async function storeSummary(summary) {
-  chrome.storage.local.get({ summaryDatabase: [] }, (data) => {
-    const updatedDatabase = [...data.summaryDatabase, summary];
-    chrome.storage.local.set({ summaryDatabase: updatedDatabase });
-  });
-}
-
+// On installation, check the model's readiness
 chrome.runtime.onInstalled.addListener(async () => {
-  const modelReady = await checkModelAvailability();
-  if (modelReady) {
-    console.log("Model is ready to summarize pages.");
-  } else {
-    console.log("Model is not ready yet.");
-  }
+  const isReady = await ModelManager.isModelReady();
+  if (!isReady) await ModelManager.checkAndDownloadModel();
+  console.log("AI model is ready for use.");
+});
+
+// Clear storage on startup (optional)
+chrome.runtime.onStartup.addListener(() => {
+  StorageManager.clearStorage();
 });
