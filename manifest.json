@@ -26,5 +26,13 @@
   "default_title": "Open AI Downloader Panel",
   "default_icon": {
   }
-}
+},
+"web_accessible_resources": [{
+  "resources": [
+    "services/*.js",
+    "popup.js"
+  ],
+  "matches": ["<all_urls>"],
+  "type": "module"
+}]
 }

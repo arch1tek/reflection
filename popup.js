@@ -1,149 +1,112 @@
-// Function to analyze categories and generate trends
-async function analyzeTrends(summaries) {
-  const categoryCount = {};
-  summaries.forEach(item => {
-    categoryCount[item.category] = (categoryCount[item.category] || 0) + 1;
-  });
+import AnalyticsService from './services/AnalyticsService.js';
+import BioGeneratorService from './services/BioGeneratorService.js';
+import UIService from './services/UIService.js';
 
-  // Calculate percentages
-  const total = summaries.length;
-  const trends = Object.entries(categoryCount).map(([category, count]) => ({
-    category,
-    percentage: ((count / total) * 100).toFixed(1)
-  }));
-
-  return trends.sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
-}
-
-// Function to generate user bio based on browsing patterns
-async function generateUserBio(summaries) {
-  const session = await chrome.aiOriginTrial.languageModel.create();
-  const trends = await analyzeTrends(summaries);
-  
-  // Get the most recent 10 pages for context
-  const recentPages = summaries.slice(-10).map(item => ({
-    title: item.title,
-    category: item.category,
-    summary: item.summary
-  }));
-
-  const prompt = `
-    Based on this user's browsing patterns and recent activity:
-
-    Overall Interests:
-    ${trends.map(t => `- ${t.percentage}% ${t.category}`).join('\n')}
-
-    Recent Browsing Activity:
-    ${recentPages.map(page => `
-    Title: ${page.title}
-    Category: ${page.category}
-    Summary: ${page.summary}
-    `).join('\n')}
-
-    Generate a personalized, friendly bio (2-3 sentences) that describes this person's interests and recent focus areas.
-    Make it conversational and highlight both their main interests and any interesting recent topics they've explored.
-    Don't list percentages directly, but rather weave the interests naturally into the narrative.
-  `;
-
-  try {
-    const bio = await session.prompt(prompt);
-    return bio;
-  } catch (error) {
-    console.error("Error generating bio:", error);
-    return "Unable to generate bio at this time.";
+class PopupManager {
+  constructor() {
+    console.log('PopupManager initialized');
+    this.initialize();
   }
-}
 
-// Function to render the profile page
-async function renderProfile(summaries) {
-  const profileDiv = document.getElementById("profile");
-  const trends = await analyzeTrends(summaries);
-  const bio = await generateUserBio(summaries);
+  async initialize() {
+    try {
+      console.log('Starting initialization');
+      await this.renderSummaries();
+      this.setupEventListeners();
+      console.log('Initialization complete');
+    } catch (error) {
+      console.error('Initialization error:', error);
+    }
+  }
 
-  // Create the profile HTML
-  const profileHTML = `
-    <div class="profile-section">
-      <h3>Your Browsing Profile</h3>
-      <div class="bio-section">
-        <h4>About You</h4>
-        <p>${bio}</p>
-      </div>
+  setupEventListeners() {
+    const clearButton = document.getElementById("clearData");
+    clearButton?.addEventListener("click", () => this.handleClearData());
+  }
+
+  async renderSummaries() {
+    try {
+      console.log('Fetching summary data');
+      const data = await this.getSummaryData();
+      console.log('Summary data:', data);
       
-      <div class="trends-section">
-        <h4>Your Interests</h4>
-        <div class="trends-container">
-          ${trends.map(trend => `
-            <div class="trend-item">
-              <div class="trend-bar" style="width: ${trend.percentage}%"></div>
-              <span class="trend-label">${trend.category}</span>
-              <span class="trend-percentage">${trend.percentage}%</span>
-            </div>
-          `).join('')}
-        </div>
-      </div>
+      const summariesDiv = document.getElementById("summaries");
+      if (!summariesDiv) {
+        console.error('Summaries div not found');
+        return;
+      }
 
-      <div class="stats-section">
-        <h4>Quick Stats</h4>
-        <p>Pages Analyzed: ${summaries.length}</p>
-        <p>Top Category: ${trends[0]?.category || 'N/A'}</p>
-        <p>Categories Explored: ${trends.length}</p>
-      </div>
-    </div>
-  `;
+      if (!data.summaryDatabase?.length) {
+        console.log('No summaries available');
+        this.renderEmptyState(summariesDiv);
+        return;
+      }
 
-  profileDiv.innerHTML = profileHTML;
-}
+      console.log('Rendering full profile');
+      await this.renderFullProfile(data.summaryDatabase, summariesDiv);
+    } catch (error) {
+      console.error('Error in renderSummaries:', error);
+    }
+  }
 
-// Modified renderSummaries function
-function renderSummaries() {
-  chrome.storage.local.get({ summaryDatabase: [] }, async (data) => {
-    const summariesDiv = document.getElementById("summaries");
+  async getSummaryData() {
+    return new Promise(resolve => {
+      chrome.storage.local.get({ summaryDatabase: [] }, resolve);
+    });
+  }
+
+  renderEmptyState(container) {
+    container.innerHTML = "<p>No summaries available.</p>";
+  }
+
+  async renderFullProfile(summaries, summariesDiv) {
+    const profileDiv = this.createProfileDiv(summariesDiv);
+    const trends = await AnalyticsService.analyzeTrends(summaries);
+    const recentPages = AnalyticsService.getRecentActivities(summaries);
+    const stats = AnalyticsService.getStats(summaries, trends);
+    const bio = await BioGeneratorService.generateBio(trends, recentPages);
+
+    profileDiv.innerHTML = UIService.createProfileSection(bio, trends, stats);
+    this.renderRecentActivity(summaries.slice(-5), summariesDiv);
+  }
+
+  createProfileDiv(summariesDiv) {
     const profileDiv = document.createElement("div");
     profileDiv.id = "profile";
     summariesDiv.parentNode.insertBefore(profileDiv, summariesDiv);
+    return profileDiv;
+  }
 
-    if (data.summaryDatabase.length === 0) {
-      summariesDiv.innerHTML = "<p>No summaries available.</p>";
-      return;
-    }
-
-    // Render profile first
-    await renderProfile(data.summaryDatabase);
-
-    // Then render summaries
-    summariesDiv.innerHTML = "<h3>Recent Activity</h3>";
-    
-    // Show only the last 5 summaries
-    const recentSummaries = data.summaryDatabase.slice(-5);
-    recentSummaries.forEach((item) => {
-      const summaryElement = document.createElement("div");
-      summaryElement.className = "summary-item";
-
-      summaryElement.innerHTML = `
-        <strong>${item.title}</strong>
-        <div class="category">Category: ${item.category}</div>
-        <div class="summary-text">${item.summary}</div>
-      `;
-
-      summariesDiv.appendChild(summaryElement);
+  renderRecentActivity(recentSummaries, container) {
+    container.innerHTML = "<h3>Recent Activity</h3>";
+    recentSummaries.forEach(item => {
+      container.innerHTML += UIService.createSummaryItem(item);
     });
-  });
-}
+  }
 
-// Function to clear stored summaries
-function clearSummaries() {
-  if (confirm("Are you sure you want to clear all your browsing data?")) {
-    chrome.storage.local.set({ summaryDatabase: [] }, () => {
-      console.log("All data cleared.");
-      renderSummaries(); // Refresh the UI
+  async handleClearData() {
+    if (confirm("Are you sure you want to clear all your browsing data?")) {
+      await this.clearStorage();
+      await this.renderSummaries();
+    }
+  }
+
+  clearStorage() {
+    return new Promise(resolve => {
+      chrome.storage.local.set({ summaryDatabase: [] }, () => {
+        console.log("All data cleared.");
+        resolve();
+      });
     });
   }
 }
 
 // Initialize the popup
 document.addEventListener("DOMContentLoaded", () => {
-  renderSummaries();
-
-  const clearButton = document.getElementById("clearData");
-  clearButton.addEventListener("click", clearSummaries);
+  console.log('DOM Content Loaded');
+  try {
+    new PopupManager();
+  } catch (error) {
+    console.error('Error creating PopupManager:', error);
+  }
 });
