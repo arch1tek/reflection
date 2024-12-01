@@ -40,3 +40,12 @@ chrome.sidePanel
           .setPanelBehavior({ openPanelOnActionClick: true })
           .catch((error) => console.error(error));
 
+(async () => {
+  const isReady = await ModelManager.isModelReady();
+  if (!isReady) {
+    await ModelManager.checkAndDownloadModel();
+    console.log("Model has been downloaded and is ready.");
+  } else {
+    console.log("Model is already ready.");
+  }
+})();
