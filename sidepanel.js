@@ -1,14 +1,21 @@
 import { databaseService } from './services/DatabaseService.js';
 
-class PopupUI {
+class SidePanelUI {
   constructor() {
     this.summariesContainer = document.getElementById('summaries');
+    this.clearButton = document.getElementById('clearButton');
     this.initializeUI();
   }
 
   async initializeUI() {
     await this.loadSummaries();
     this.setupClearButton();
+    this.setupAutoRefresh();
+  }
+
+  setupAutoRefresh() {
+    // Refresh summaries every 30 seconds
+    setInterval(() => this.loadSummaries(), 30000);
   }
 
   async loadSummaries() {
@@ -25,7 +32,7 @@ class PopupUI {
     this.summariesContainer.innerHTML = '';
     
     if (!summaries.length) {
-      this.summariesContainer.innerHTML = '<p>No summaries for today yet.</p>';
+      this.summariesContainer.innerHTML = '<p style="text-align: center; color: #666;">No summaries for today yet.</p>';
       return;
     }
 
@@ -34,8 +41,10 @@ class PopupUI {
       summaryElement.className = 'summary';
       summaryElement.innerHTML = `
         <h4>${summary.title}</h4>
-        <p><strong>Category:</strong> ${summary.category}</p>
-        <p><strong>Topic:</strong> ${summary.topic}</p>
+        <div style="margin: 8px 0;">
+          <span class="category-tag">${summary.category}</span>
+          <span class="category-tag">${summary.topic}</span>
+        </div>
         <p>${summary.summary}</p>
         <small>${new Date(summary.timestamp).toLocaleTimeString()}</small>
       `;
@@ -44,20 +53,17 @@ class PopupUI {
   }
 
   setupClearButton() {
-    const clearButton = document.createElement('button');
-    clearButton.textContent = 'Clear All Data';
-    clearButton.onclick = async () => {
+    this.clearButton.onclick = async () => {
       if (confirm('Are you sure you want to clear all stored data?')) {
         try {
           await databaseService.clearAllData();
-          this.summariesContainer.innerHTML = '<p>No summaries for today yet.</p>';
+          this.summariesContainer.innerHTML = '<p style="text-align: center; color: #666;">No summaries for today yet.</p>';
         } catch (error) {
           console.error('Error clearing data:', error);
           this.showError('Failed to clear data');
         }
       }
     };
-    document.body.appendChild(clearButton);
   }
 
   showError(message) {
@@ -68,7 +74,7 @@ class PopupUI {
   }
 }
 
-// Initialize popup when DOM is loaded
+// Initialize sidepanel when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  new PopupUI();
-});
+  new SidePanelUI();
+}); 
