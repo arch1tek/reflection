@@ -64,9 +64,11 @@ class PopupManager {
     const trends = await AnalyticsService.analyzeTrends(summaries);
     const recentPages = AnalyticsService.getRecentActivities(summaries);
     const stats = AnalyticsService.getStats(summaries, trends);
-    const bio = await BioGeneratorService.generateBio(trends, recentPages);
-
-    profileDiv.innerHTML = UIService.createProfileSection(bio, trends, stats);
+    
+    profileDiv.innerHTML = UIService.createProfileSection("Generating your profile...", trends, stats);
+    
+    const finalBio = await BioGeneratorService.generateBio(trends, recentPages);
+    
     this.renderRecentActivity(summaries.slice(-5), summariesDiv);
   }
 

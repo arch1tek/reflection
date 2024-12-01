@@ -1,5 +1,11 @@
 class UIService {
   static createProfileSection(bio, trends, stats) {
+    console.log('Creating profile section with:', {
+      bioLength: bio.length,
+      trendsCount: trends.length,
+      stats
+    });
+
     return `
       <div class="profile-section">
         <h3>Your Browsing Profile</h3>
@@ -14,20 +20,32 @@ class UIService {
     return `
       <div class="bio-section">
         <h4>About You</h4>
-        <p>${bio}</p>
+        <p id="streaming-bio">${bio}</p>
       </div>
     `;
   }
 
+  static updateBioContent(bio) {
+    const bioElement = document.getElementById('streaming-bio');
+    if (bioElement) {
+      bioElement.textContent = bio;
+    }
+  }
+
   static createTrendsSection(trends) {
-    return `
+    console.log('Creating trends section with', trends.length, 'trends');
+    const section = `
       <div class="trends-section">
         <h4>Your Interests</h4>
         <div class="trends-container">
-          ${trends.map(trend => this.createTrendItem(trend)).join('')}
+          ${trends.map(trend => {
+            console.log('Processing trend:', trend);
+            return this.createTrendItem(trend);
+          }).join('')}
         </div>
       </div>
     `;
+    return section;
   }
 
   static createTrendItem(trend) {
@@ -52,6 +70,12 @@ class UIService {
   }
 
   static createSummaryItem(item) {
+    console.log('Creating summary item:', {
+      title: item.title,
+      category: item.category,
+      summaryLength: item.summary.length
+    });
+    
     return `
       <div class="summary-item">
         <strong>${item.title}</strong>
@@ -61,5 +85,10 @@ class UIService {
     `;
   }
 }
+
+// Add event listener for bio updates
+window.addEventListener('bioUpdate', (event) => {
+  UIService.updateBioContent(event.detail.bio);
+});
 
 export default UIService; 
