@@ -10,7 +10,8 @@
   "permissions": [
     "aiLanguageModelOriginTrial",
     "storage",
-    "activeTab"
+    "activeTab",
+    "sidePanel"
   ],
   "content_scripts": [
   {
@@ -18,8 +19,11 @@
     "js": ["content.js"]
   }
 ],
+"side_panel": {
+    "default_path": "popup.html"
+  },
 "action": {
-  "default_popup": "popup.html",
+  "default_title": "Open AI Downloader Panel",
   "default_icon": {
   }
 }

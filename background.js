@@ -30,7 +30,13 @@ chrome.runtime.onInstalled.addListener(async () => {
   console.log("AI model is ready for use.");
 });
 
+
 // Clear storage on startup (optional)
 chrome.runtime.onStartup.addListener(() => {
   StorageManager.clearStorage();
 });
+
+chrome.sidePanel
+          .setPanelBehavior({ openPanelOnActionClick: true })
+          .catch((error) => console.error(error));
+
