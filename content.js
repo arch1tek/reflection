@@ -8,7 +8,9 @@ class ContentExtractor {
 }
 
 // Automatically process the page when the content script runs
-(async () => {
+async function processWebPage() {
   const content = ContentExtractor.extractPageContent();
   chrome.runtime.sendMessage({ action: "storeSummary", data: content });
-})();
+}
+
+processWebPage()

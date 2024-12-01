@@ -1,3 +1,6 @@
+import ModelManager from './ModelManager.js';
+import StorageManager from './StoreManager.js';
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "storeSummary") {
     (async () => {

@@ -3,24 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page Summary Tracker</title>
+  <title>Page Summaries and Categories</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 10px;
       width: 300px;
     }
-    .summary {
-      margin-bottom: 10px;
-      padding: 5px;
+    .summary-item {
+      margin-bottom: 15px;
+      padding: 10px;
       border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .summary-item strong {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+    .category {
+      color: #007BFF;
+      font-size: 14px;
+    }
+    .summary-text {
+      font-size: 14px;
+      color: #333;
+    }
+    .clear-button {
+      display: block;
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .clear-button:hover {
+      background-color: #d32f2f;
     }
   </style>
 </head>
 <body>
   <h3>Page Summaries</h3>
   <div id="summaries"></div>
-
+  <button class="clear-button" id="clearData">Clear All Data</button>
   <script src="popup.js"></script>
 </body>
 </html>

@@ -1,26 +1,26 @@
 {
-    "manifest_version": 3,
-    "name": "AI Model Downloader",
-    "version": "1.0",
-    "background": {
-      "service_worker": "background.js"
-    },
-    
-    "permissions": [
-      "aiLanguageModelOriginTrial",
-      "storage",
-      "activeTab"
-    ],
-    "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
-    }
+  "manifest_version": 3,
+  "name": "AI Model Downloader",
+  "version": "1.0",
+  "background": {
+    "service_worker": "background.js",
+    "type":"module"
+  },
+  "trial_tokens": ["AjE6y70JBNZp+WmE96NLSULyq2EglKbpkfiyDJjnBoXxCTjcjnRGvoFPFXCK3ZuXurGJRvhKDXsFyM8JGT0q5wkAAAB4eyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vbmlvYWNhaGRoYWxmZm9lbWFiZGdrbHBia2JqbW5oZGUiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElGb3JFeHRlbnNpb24iLCJleHBpcnkiOjE3NjA0ODYzOTl9"],
+  "permissions": [
+    "aiLanguageModelOriginTrial",
+    "storage",
+    "activeTab"
   ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-    }
+  "content_scripts": [
+  {
+    "matches": ["<all_urls>"],
+    "js": ["content.js"]
   }
+],
+"action": {
+  "default_popup": "popup.html",
+  "default_icon": {
   }
-  
+}
+}
