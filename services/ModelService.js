@@ -1,29 +1,31 @@
+import { logger } from './LoggerService.js';
+
 class ModelService {
   async checkAndDownloadModel() {
-    console.log('Checking model availability...');
+    logger.info('ModelService', 'Checking model availability');
     try {
       const capabilities = await chrome.aiOriginTrial.languageModel.capabilities();
   
       if (capabilities.available === 'after-download') {
-        console.log('Model is downloading...');
+        logger.info('ModelService', 'Model download required');
         const session = await chrome.aiOriginTrial.languageModel.create({
           monitor(m) {
             m.addEventListener("downloadprogress", (e) => {
-              console.log(`Downloaded ${e.loaded} of ${e.total} bytes.`);
+              logger.debug('ModelService', `Download progress: ${e.loaded}/${e.total} bytes`);
             });
           },
         });
-        console.log('Model downloaded and ready for use');
+        logger.info('ModelService', 'Model downloaded successfully');
         return true;
       } else if (capabilities.available === 'readily') {
-        console.log('Model is already available');
+        logger.info('ModelService', 'Model already available');
         return true;
       } else {
-        console.log('Model is not available at the moment');
+        logger.warn('ModelService', 'Model not available');
         return false;
       }
     } catch (error) {
-      console.error('Error downloading or checking the model:', error);
+      logger.error('ModelService', 'Error checking/downloading model', error);
       return false;
     }
   }
@@ -46,6 +48,7 @@ class ModelService {
   }
 
   async summarizeContent(content) {
+    logger.debug('ModelService', 'Starting content summarization', { contentLength: content.length });
     try {
       const session = await chrome.aiOriginTrial.languageModel.create();
       const prompt = `
@@ -65,9 +68,10 @@ class ModelService {
       `;
       
       const result = await session.prompt(prompt);
+      logger.info('ModelService', 'Content summarization completed');
       return this.extractJsonFromString(result);
     } catch (error) {
-      console.error('Error summarizing content:', error);
+      logger.error('ModelService', 'Error summarizing content', error);
       throw error;
     }
   }

@@ -117,15 +117,113 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #555;
     }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 14px;
+      color: #666;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab.active {
+      color: #333;
+      border-bottom-color: #007bff;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .stat-card h5 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+
+    .chart-container {
+      margin-top: 15px;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <h3>Today's Page Summaries</h3>
+    <h3>Browsing Insights</h3>
   </div>
-  
-  <div class="summaries-container" id="summaries"></div>
-  
+
+  <div class="tabs">
+    <button class="tab active" data-tab="pages">Page Summaries</button>
+    <button class="tab" data-tab="daily">Daily Overview</button>
+    <button class="tab" data-tab="monthly">Monthly Stats</button>
+  </div>
+
+  <div class="tab-content active" id="pages">
+    <div class="summaries-container" id="summaries"></div>
+  </div>
+
+  <div class="tab-content" id="daily">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h5>Pages Visited Today</h5>
+        <div id="daily-pages-count"></div>
+      </div>
+      <div class="stat-card">
+        <h5>Top Categories</h5>
+        <div id="daily-categories"></div>
+      </div>
+    </div>
+    <div class="chart-container">
+      <h5>Browsing Time Distribution</h5>
+      <div id="daily-time-chart"></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="monthly">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h5>Total Pages This Month</h5>
+        <div id="monthly-pages-count"></div>
+      </div>
+      <div class="stat-card">
+        <h5>Daily Average</h5>
+        <div id="monthly-daily-avg"></div>
+      </div>
+    </div>
+    <div class="chart-container">
+      <h5>Monthly Category Distribution</h5>
+      <div id="monthly-category-chart"></div>
+    </div>
+  </div>
+
   <div class="footer">
     <button id="clearButton">Clear All Data</button>
   </div>

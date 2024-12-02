@@ -1,49 +1,46 @@
 import { modelService } from './services/ModelService.js';
 import { databaseService } from './services/DatabaseService.js';
+import { logger } from './services/LoggerService.js';
 
 class BackgroundController {
   constructor() {
+    logger.info('BackgroundController', 'Initializing background controller');
     this.initializeMessageListeners();
     this.initializeExtension();
   }
 
   async initializeExtension() {
+    logger.debug('BackgroundController', 'Setting up side panel behavior');
     chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
     const modelReady = await modelService.checkAndDownloadModel();
-    if (modelReady) {
-      console.log("Model is ready to summarize pages.");
-    } else {
-      console.log("Model is not ready yet.");
-    }
+    logger.info('BackgroundController', 'Model initialization complete', { modelReady });
   }
 
   initializeMessageListeners() {
+    logger.debug('BackgroundController', 'Setting up message listeners');
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      logger.debug('BackgroundController', 'Received message', { action: message.action });
       if (message.action === "processContent") {
         this.handleContentProcessing(message.data, sendResponse);
-        return true; // Required for async response
+        return true;
       }
     });
   }
 
   async handleContentProcessing(data, sendResponse) {
+    logger.debug('BackgroundController', 'Processing content', { url: data.url });
     try {
-      // Get summary from model
       const analysisResult = await modelService.summarizeContent(data.content);
-      
-      // Prepare data for storage
-      const pageData = {
+      await databaseService.addPageSummary({
         title: data.title,
         url: data.url,
         timestamp: data.timestamp,
         ...analysisResult
-      };
-
-      // Store in database
-      await databaseService.addPageSummary(pageData);
+      });
+      logger.info('BackgroundController', 'Content processing completed successfully');
       sendResponse({ success: true });
     } catch (error) {
-      console.error('Error processing content:', error);
+      logger.error('BackgroundController', 'Error processing content', error);
       sendResponse({ success: false, error: error.message });
     }
   }
